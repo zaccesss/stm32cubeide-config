@@ -11,6 +11,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- On Windows the editor and Terminal fonts are written `GeistMono NF` and `GeistMono NFM`. Windows looks fonts up by their GDI family name, so the long `GeistMono Nerd Font` names resolved to Arial and the Terminal drew its text far apart.
 - The themes colour the Terminal in STM32CubeIDE 2.2. It moved to Eclipse 4.38's `org.eclipse.terminal.control` plugin, so each theme now writes the Terminal colours for that plugin as well as for the older `org.eclipse.tm.terminal.control` 2.1 used.
 
 ### Added
