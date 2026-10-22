@@ -1,6 +1,6 @@
 # windows
 
-Tested with STM32CubeIDE 2.1.1, which installs to `C:\ST\STM32CubeIDE_<version>` with the workspace at `%USERPROFILE%\STM32CubeIDE\workspace_<version>`. The settings match macOS, apart from the font size: GeistMono Nerd Font at 14 points from `prefs/`, which matches 18 on macOS on screen.
+Tested with STM32CubeIDE 2.1.1 and 2.2.0, which install to `C:\ST\STM32CubeIDE_<version>` with the workspace at `%USERPROFILE%\STM32CubeIDE\workspace_<version>`. The settings match macOS, apart from the font size: GeistMono Nerd Font at 14 points from `prefs/`, which matches 18 on macOS on screen.
 
 | File | What it is |
 | --- | --- |

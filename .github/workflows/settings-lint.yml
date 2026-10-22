@@ -78,9 +78,13 @@ jobs:
             for key in c_keyword c_string c_numbers pp_directive semanticHighlighting.macroSubstitution.color; do
               grep -q "^/instance/org.eclipse.cdt.ui/$key=" "$f" || { echo "::error file=$f::missing $key"; hit=1; }
             done
-            if grep -Eq '^/instance/org\.eclipse\.(jdt|terminal\.control)' "$f"; then
-              echo "::error file=$f::Java or new Terminal plugin keys, which STM32CubeIDE does not read"; hit=1
+            if grep -Eq '^/instance/org\.eclipse\.jdt' "$f"; then
+              echo "::error file=$f::Java keys, which the C editor does not read"; hit=1
             fi
+            # 2.2 reads the new Terminal plugin and 2.1 the old one, so both must be there
+            for plugin in org.eclipse.terminal.control org.eclipse.tm.terminal.control; do
+              grep -q "^/instance/$plugin/BACKGROUND=" "$f" || { echo "::error file=$f::no $plugin colours"; hit=1; }
+            done
           done
           exit "$hit"
 
