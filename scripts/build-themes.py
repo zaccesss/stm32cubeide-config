@@ -4,8 +4,9 @@ usage: python scripts/build-themes.py <folder with the Zacess Eclipse .epf files
 
 The Eclipse themes colour Java code. STM32CubeIDE edits C through CDT, which keeps its colours
 under other keys, so each Java colour is copied to the C key that plays the same part. The
-plain editor colours carry over as they are. the Terminal colours move to the older
-org.eclipse.tm.terminal.control plugin that STM32CubeIDE 2.1 ships.
+plain editor colours carry over as they are. the Terminal colours are written twice: under
+org.eclipse.terminal.control for STM32CubeIDE 2.2 and later and under the older
+org.eclipse.tm.terminal.control for 2.1.
 """
 
 import pathlib
@@ -107,6 +108,7 @@ def build(name, values):
         elif plugin == "org.eclipse.ui.workbench":
             lines.append(f"/instance/{plugin}/{key}={value}")
         elif plugin == "org.eclipse.terminal.control":
+            lines.append(f"/instance/{plugin}/{key}={value}")
             lines.append(f"/instance/org.eclipse.tm.terminal.control/{key}={value}")
     for c_key, source in list(TOKENS.items()) + list(DOXYGEN.items()):
         for suffix, value in token(values, source).items():

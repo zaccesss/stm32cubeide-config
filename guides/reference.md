@@ -79,7 +79,7 @@ The full binding list as stored, with the command and context ids, is the `org.e
 - **C syntax colours** come from the Java colour that plays the same part: keywords and types from Java keywords, strings and `#include` headers from strings, comments from comments and numbers from Java's number colour.
 - **Directives and macros** (`#define`, `#include`, `__HAL_RCC_GPIOA_CLK_ENABLE`) take the colour of Java's `return` keyword, which every theme keeps apart from functions and keywords, so a HAL macro never reads as a function call.
 - **Semantic colours** (functions, globals, fields, locals, parameters, enumerators, typedefs) come from the matching Java semantic colours. Doxygen comments take the Javadoc colours.
-- **Terminal colours** move to `org.eclipse.tm.terminal.control`, the older Terminal plugin that STM32CubeIDE 2.1 ships.
+- **Terminal colours** are written for both Terminal plugins: `org.eclipse.terminal.control`, which STM32CubeIDE 2.2 (Eclipse 4.38) uses for its Terminal view. The older `org.eclipse.tm.terminal.control` covers 2.1.
 
 To rebuild after a Zacess Themes release, point the script at the folder holding the Eclipse `.epf` files:
 

@@ -9,6 +9,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- The themes colour the Terminal in STM32CubeIDE 2.2. It moved to Eclipse 4.38's `org.eclipse.terminal.control` plugin, so each theme now writes the Terminal colours for that plugin as well as for the older `org.eclipse.tm.terminal.control` 2.1 used.
+
 ### Added
 
 - `shared/prefs/` fragments for STM32CubeIDE 2.1.1 (Eclipse 4.33 with CDT): autosave every 20 seconds, line numbers, spaces for tabs at width 4, current line highlight, spell checking in British English for C files and other text and 15 VS Code style key bindings. The bindings are the Eclipse setup's with the Java actions moved to the C editor: `F2` renames, `F12` opens the declaration, `Shift+Alt+F` formats and `F5` and `Ctrl+Shift+F5` debug and run the last launch again, which builds and flashes the board.

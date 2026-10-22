@@ -2,7 +2,7 @@
 
 > STM32CubeIDE preferences: the eight Zacess colour themes mapped to C, Geist Mono, 15 VS Code style key bindings and a merge script per platform that applies them to a workspace without touching anything else.
 
-STM32CubeIDE is ST's Eclipse-based IDE for STM32 microcontrollers. It sits on Eclipse 4.33 with CDT for C and C++, so like Eclipse it keeps preferences in `.prefs` files inside each workspace's `.metadata` folder, mixed in with values it writes for itself (window state, recent files, debug probes, toolchain paths). Copying those files over would wipe all of that, so this repo tracks only the keys that were deliberately changed and merges them in. The Eclipse IDE counterpart is [eclipse-config](https://github.com/zaccesss/eclipse-config). STM32CubeIDE gets its own repo because it edits C through CDT, ships an older Terminal plugin and keeps its own workspace.
+STM32CubeIDE is ST's Eclipse-based IDE for STM32 microcontrollers. It sits on Eclipse (4.38 in STM32CubeIDE 2.2) with CDT for C and C++, so like Eclipse it keeps preferences in `.prefs` files inside each workspace's `.metadata` folder, mixed in with values it writes for itself (window state, recent files, debug probes, toolchain paths). Copying those files over would wipe all of that, so this repo tracks only the keys that were deliberately changed and merges them in. The Eclipse IDE counterpart is [eclipse-config](https://github.com/zaccesss/eclipse-config). STM32CubeIDE gets its own repo because it edits C through CDT and keeps its own workspace.
 
 ## What's here
 
