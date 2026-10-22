@@ -1,0 +1,132 @@
+name: Settings Lint
+
+# STM32CubeIDE reads each .prefs file as java properties, so every fragment line
+# must be a # note or key=value. the merge scripts read values only from the
+# fragments, so the mac and linux scripts stay byte-identical and the windows
+# script is only parsed here, since no windows runner is spent on it.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Validate preferences and merge scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check every fragment and the key binding XML
+        run: |
+          python3 - <<'PYEOF'
+          import glob, os, re, sys
+          import xml.etree.ElementTree as ET
+
+          bad = 0
+          keys = {}
+          for path in sorted(glob.glob("shared/prefs/*.prefs") + glob.glob("mac/prefs/*.prefs") + glob.glob("linux/prefs/*.prefs") + glob.glob("windows/prefs/*.prefs")):
+              target = os.path.basename(path)
+              for n, line in enumerate(open(path).read().splitlines(), 1):
+                  if not line.strip() or line.lstrip().startswith("#"):
+                      continue
+                  if not re.match(r"^[A-Za-z0-9_.\-/]+=", line):
+                      print(f"::error file={path},line={n}::not a # note or key=value line")
+                      bad = 1
+                      continue
+                  key = line.split("=", 1)[0]
+                  # the same key in shared and a platform overlay would make the
+                  # result depend on merge order. overlays never merge with each
+                  # other, so two platforms may each set the same key
+                  scope = path.split("/")[0]
+                  seen = keys.setdefault((target, key), {})
+                  clash = [p for s, p in seen.items() if p != path and (s == scope or "shared" in (s, scope))]
+                  if clash:
+                      print(f"::error file={path},line={n}::{key} is also set in {clash[0]}")
+                      bad = 1
+                  seen.setdefault(scope, path)
+                  if key == "org.eclipse.ui.commands":
+                      xml = line.split("=", 1)[1].replace("\\n", "\n").replace("\\=", "=")
+                      root = ET.fromstring(xml)
+                      count = len(root.findall("keyBinding"))
+                      print(f"{path}: {count} key bindings")
+                      if count != 15:
+                          print(f"::error file={path},line={n}::expected 15 key bindings, found {count}")
+                          bad = 1
+          sys.exit(bad)
+          PYEOF
+
+      - name: Shellcheck the merge script
+        run: shellcheck mac/apply.sh linux/apply.sh
+
+      - name: Check the themes carry the C colours
+        run: |
+          python3 -m py_compile scripts/build-themes.py
+          hit=0
+          for f in shared/theme/*.epf; do
+            case "$f" in *borders.epf) continue ;; esac
+            for key in c_keyword c_string c_numbers pp_directive semanticHighlighting.macroSubstitution.color; do
+              grep -q "^/instance/org.eclipse.cdt.ui/$key=" "$f" || { echo "::error file=$f::missing $key"; hit=1; }
+            done
+            if grep -Eq '^/instance/org\.eclipse\.(jdt|terminal\.control)' "$f"; then
+              echo "::error file=$f::Java or new Terminal plugin keys, which STM32CubeIDE does not read"; hit=1
+            fi
+          done
+          exit "$hit"
+
+      - name: Confirm the platform copies match
+        run: diff mac/apply.sh linux/apply.sh
+
+      - name: Run the merge twice on a throwaway workspace
+        run: |
+          ws="$RUNNER_TEMP/ws"
+          settings="$ws/.metadata/.plugins/org.eclipse.core.runtime/.settings"
+          mkdir -p "$settings"
+          printf 'eclipse.preferences.version=1\ntabWidth=8\nunrelated=kept\n' > "$settings/org.eclipse.ui.editors.prefs"
+          linux/apply.sh "$ws"
+          # nothing is backed up, so the settings folder must be the only thing beside it
+          [ "$(ls -A "$ws/.metadata/.plugins/org.eclipse.core.runtime")" = .settings ] || { echo "::error::the merge left something beside .settings"; exit 1; }
+          # every shared line must now be present verbatim, the unrelated key kept
+          # and the old tabWidth replaced rather than duplicated
+          for f in shared/prefs/*.prefs; do
+            grep -v '^[[:space:]]*#' "$f" | grep -v '^[[:space:]]*$' | while IFS= read -r line; do
+              grep -qxF -- "$line" "$settings/$(basename "$f")" || { echo "::error::missing in $(basename "$f"): ${line%%=*}"; exit 1; }
+            done
+          done
+          grep -qx 'unrelated=kept' "$settings/org.eclipse.ui.editors.prefs"
+          [ "$(grep -c '^tabWidth=' "$settings/org.eclipse.ui.editors.prefs")" = 1 ]
+          cp -R "$settings" "$RUNNER_TEMP/after-first"
+          linux/apply.sh "$ws" 2>&1 | tee "$RUNNER_TEMP/second.log"
+          diff -r "$RUNNER_TEMP/after-first" "$settings"
+          if grep -Eq '^  (added|changed) ' "$RUNNER_TEMP/second.log"; then
+            echo "::error::second run was not a no-op"
+            exit 1
+          fi
+
+      - name: Find the newest default workspace
+        run: |
+          home="$RUNNER_TEMP/home"
+          mkdir -p "$home/STM32CubeIDE/workspace_1.0.0/.metadata" "$home/STM32CubeIDE/workspace_2.0.0/.metadata" "$home/STM32CubeIDE/workspace_3.0.0"
+          touch -d '2 days ago' "$home/STM32CubeIDE/workspace_1.0.0"
+          HOME="$home" linux/apply.sh --no-theme | tee "$RUNNER_TEMP/default.log"
+          grep -qx "Workspace: $home/STM32CubeIDE/workspace_2.0.0" "$RUNNER_TEMP/default.log"
+          rm -rf "$home/STM32CubeIDE"
+          if HOME="$home" linux/apply.sh 2>/dev/null; then echo "::error::ran with no workspace"; exit 1; fi
+
+      - name: Parse the PowerShell merge script
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/windows/apply.ps1", [ref]$null, [ref]$errors) | Out-Null
+          if ($errors.Count) { $errors | ForEach-Object { Write-Output "::error file=windows/apply.ps1::$($_.Message)" }; exit 1 }
+          Write-Output 'windows/apply.ps1 parses'
