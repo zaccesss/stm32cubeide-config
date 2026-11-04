@@ -9,6 +9,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-03
+
 ### Fixed
 
 - On Windows the editor and Terminal fonts are written `GeistMono NF` and `GeistMono NFM`. Windows looks fonts up by their GDI family name, so the long `GeistMono Nerd Font` names resolved to Arial and the Terminal drew its text far apart.
@@ -23,3 +25,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A `README.md` per platform with the STM32CubeIDE install steps, including the RPM bundle for Fedora.
 - `guides/setup.md` and `guides/reference.md`, plus the community-health files.
 - CI: every fragment line is a note or `key=value`, the key binding XML parses with 15 bindings, every theme carries the C colours and no Java ones, shellcheck, the two shell scripts are identical, a double run on a throwaway workspace changes nothing and leaves no backup, the default workspace is found and the PowerShell script parses.
+
+### Changed
+
+- Routine tidy-up
